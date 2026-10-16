@@ -13,7 +13,9 @@ from semround.model.loader import LoadedModel
 from semround.model.types import ColumnType, Kind
 
 MAX_QUERIES_PER_METRIC = 16
-TIME_GRAINS = (None, "week", "month")
+# Explicit grains only: converters give time dimensions a default grain (dbt: DAY), so a
+# grain-less query on a timestamp would compare raw values with truncated ones.
+TIME_GRAINS = ("day", "week", "month")
 
 
 def _homes(loaded: LoadedModel, metric: str) -> list[str]:

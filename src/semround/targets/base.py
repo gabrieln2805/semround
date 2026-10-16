@@ -45,7 +45,11 @@ class Target(Protocol):
         """Convert the model once; called before any :meth:`compile`."""
 
     def compile(self, query: Query) -> Outcome:
-        """SQL for one query, or why there is none."""
+        """SQL for one query, or why there is none.
+
+        Targets with a slow toolchain may also define ``precompile(queries)``; it is called
+        once with every query before the first ``compile``, so the work can be batched.
+        """
 
     def versions(self) -> dict[str, str]:
         """Pinned versions of everything the target runs, for the report."""

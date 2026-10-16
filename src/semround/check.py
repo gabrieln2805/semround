@@ -90,8 +90,12 @@ def check_model(path: Path, targets: list[Target], opts: CheckOptions, workdir: 
     def add(metric: str, target: str, issue: Issue, trap: str | None, query: Query) -> None:
         fid = finding_id(shown, metric, target, issue.code, trap)
         if fid in findings:
-            if query.key not in findings[fid].queries:
-                findings[fid].queries.append(query.key)
+            existing = findings[fid]
+            if query.key not in existing.queries:
+                existing.queries.append(query.key)
+            if metric == "(model)" and issue.detail not in existing.detail:
+                # Distinct model-level problems share one id; keep every explanation.
+                existing.detail += f" | {issue.detail}"
             return
         findings[fid] = Finding(
             id=fid,
@@ -107,16 +111,23 @@ def check_model(path: Path, targets: list[Target], opts: CheckOptions, workdir: 
             accept_reason=opts.accepted.get(fid),
         )
 
+    queries = all_queries(loaded, types)
     ready: list[Target] = []
     for t in targets:
         try:
             t.prepare(loaded, types, workdir / t.name)
+            precompile = getattr(t, "precompile", None)
+            if precompile is not None:
+                precompile(queries)
             ready.append(t)
         except Exception as e:  # a broken converter is a finding, not a crash
             add("(model)", t.name, Issue(Code.TARGET_ERROR, f"prepare failed: {e}"), None, Query("(model)"))
+        # Model-level problems a target found while preparing, e.g. constructs it dropped.
+        for code, metric, detail in getattr(t, "model_issues", []):
+            add(metric, t.name, Issue(Code(code), detail), None, Query(metric))
 
     try:
-        for query in all_queries(loaded, types):
+        for query in queries:
             try:
                 plan, ref_sql = compile_query(loaded, query)
             except Unsupported as u:

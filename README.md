@@ -4,7 +4,7 @@ Semround checks that converting a semantic model keeps every metric's numbers.
 
 Point it at an [Apache Ossie](https://github.com/apache/ossie) model and choose the converters to test. Semround builds synthetic DuckDB tables seeded with known edge cases, runs the original metrics and the converted ones on the same tables, and reports every number that differs.
 
-> **Status: pre-alpha.** The core loop works end to end against a built-in `reference` target. The first real target, dbt v1.12 with MetricFlow, is next. Nothing is on PyPI yet.
+> **Status: pre-alpha.** The core loop works end to end with two targets: `reference` (a self-check) and `dbt` (dbt v1.12 with MetricFlow). Nothing is on PyPI yet.
 
 ## How it works
 
@@ -31,6 +31,18 @@ uv run semround fixtures corpus/upstream/tpcds_0.1.1.yaml --out /tmp/tpcds
 ```
 
 Exit codes: `0` pass, `1` findings, `2` usage or config error, `3` internal error.
+
+### The `dbt` target
+
+dbt and MetricFlow pin dependencies that conflict with other converters, so each target gets its own virtual environment:
+
+```bash
+uv venv .targets/dbt
+uv pip install --python .targets/dbt "dbt-core==1.12.*" dbt-duckdb dbt-metricflow
+uv run semround check corpus/traps/shop_small.yaml --to dbt
+```
+
+Semround writes the model into a temporary dbt project's `osi/` folder and runs `dbt parse` with tracking and version checks off. It then asks MetricFlow's Python API for the SQL of every query (`--explain`; no warehouse connection) and runs that SQL on the fixtures. Set `SEMROUND_DBT_VENV` to use a venv somewhere else.
 
 ## Finding codes
 

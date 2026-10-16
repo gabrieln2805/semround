@@ -36,6 +36,21 @@ jobs:
       # pytest runs with --disable-socket (rule I1); see pyproject.toml.
       - run: uv run pytest
 
+  e2e-dbt:
+    # Real dbt v1.12 + MetricFlow in their own venv (D7); the toolchain is installed first,
+    # then the suite runs with sockets disabled (rule I1).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv venv --python 3.12 .targets/dbt
+      - run: uv pip install --python .targets/dbt "dbt-core==1.12.*" dbt-duckdb dbt-metricflow
+      - run: uv run pytest tests/test_dbt_target.py
+
   licences:
     # Rule I6: runtime dependencies must be permissively licensed.
     runs-on: ubuntu-latest

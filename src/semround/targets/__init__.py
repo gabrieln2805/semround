@@ -1,4 +1,4 @@
-"""Target registry. Built-in targets are added as their spikes land (dbt: S2, ossie-dbt: S3)."""
+"""Target registry: reference (self-check) and dbt; ossie-dbt and round-trips follow (spike S3)."""
 
 from __future__ import annotations
 
@@ -6,9 +6,10 @@ from collections.abc import Callable
 
 from semround.errors import UsageError
 from semround.targets.base import Compiled, Dropped, Outcome, Refusal, Target
+from semround.targets.dbt import DbtTarget
 from semround.targets.reference import ReferenceTarget
 
-_REGISTRY: dict[str, Callable[[], Target]] = {"reference": ReferenceTarget}
+_REGISTRY: dict[str, Callable[[], Target]] = {"reference": ReferenceTarget, "dbt": DbtTarget}
 
 
 def register(name: str, factory: Callable[[], Target]) -> None:

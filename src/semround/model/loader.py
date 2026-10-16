@@ -85,7 +85,7 @@ def parse_source(source: str, dataset: str) -> PhysicalSource:
     )
 
 
-def _read_document(path: Path) -> object:
+def read_document(path: Path) -> object:
     if not path.is_file():
         raise ModelError(f"model file not found: {path}")
     text = path.read_text(encoding="utf-8")
@@ -148,7 +148,7 @@ def _field_columns(expr: exp.Expression, dataset: str) -> list[str]:
 
 def load_model(path: str | Path, model_name: str | None = None, allow_dev: bool = False) -> LoadedModel:
     path = Path(path)
-    version, body = _unwrap(_read_document(path), path, model_name, allow_dev)
+    version, body = _unwrap(read_document(path), path, model_name, allow_dev)
     try:
         model = SemanticModel.model_validate(body)
     except ValidationError as e:
