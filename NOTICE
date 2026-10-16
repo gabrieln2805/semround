@@ -1,0 +1,9 @@
+Semround
+Copyright 2026 Gabriel Nastase
+
+This product includes files from Apache Ossie (https://github.com/apache/ossie),
+licensed under the Apache License, Version 2.0:
+  corpus/upstream/tpcds_0.1.1.yaml        (tag osi-0.1.1-rc1)
+  corpus/upstream/osi-schema-0.1.1.json    (tag osi-0.1.1-rc1)
+  corpus/upstream/tpcds_0.2.0.dev0.yaml   (commit 464f3968)
+  corpus/upstream/ossie-schema-0.2.0.dev0.json (commit 464f3968)

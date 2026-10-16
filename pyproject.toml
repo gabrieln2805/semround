@@ -1,0 +1,76 @@
+[project]
+name = "semround"
+version = "0.1.0.dev0"
+description = "Check that semantic-model conversions keep every metric's numbers: Apache Ossie in, findings out."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Gabriel Nastase", email = "gabrielnastase2805@gmail.com" }]
+requires-python = ">=3.11"
+keywords = ["semantic layer", "ossie", "dbt", "metricflow", "duckdb", "testing", "metrics"]
+classifiers = [
+    "Development Status :: 2 - Pre-Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Database",
+    "Topic :: Software Development :: Testing",
+]
+dependencies = [
+    "duckdb>=1.5,<2",
+    "pydantic>=2.7",
+    "pyyaml>=6",
+    "sqlglot>=30",
+    "typer>=0.12",
+]
+
+[project.scripts]
+semround = "semround:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/semround"]
+
+[dependency-groups]
+dev = [
+    "hypothesis>=6.170.0",
+    "pip-licenses>=5.5.5",
+    "pytest>=9.1.1",
+    "pytest-socket>=0.8.1",
+    "ruff>=0.17.1",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# Rule I1: nothing in the test suite (including full `check` runs) may open a network socket.
+addopts = "--disable-socket -q"
+filterwarnings = ["ignore:A test tried to use socket:UserWarning"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["vendor"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "TID"]
+ignore = ["B008"]  # typer.Option in defaults is the documented Typer pattern
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["TID251"]  # tests check that the bans hold, so they may import socket
+
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+# Rules I2 and I4, also enforced in tests/test_invariants.py.
+"requests".msg = "No HTTP clients in semround (rule I4)."
+"httpx".msg = "No HTTP clients in semround (rule I4)."
+"urllib.request".msg = "No HTTP clients in semround (rule I4)."
+"socket".msg = "No network access in semround (rule I1)."
+"snowflake".msg = "No warehouse connectors (rule I2)."
+"databricks".msg = "No warehouse connectors (rule I2)."

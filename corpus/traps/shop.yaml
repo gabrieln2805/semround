@@ -1,0 +1,121 @@
+# Semround trap corpus: a small shop model built to hit the constructs converters get wrong.
+#
+# - orders -> customers (many-to-one), order_items -> orders (many-to-one): grouping an
+#   orders metric by an order_items field is a fan-out query.
+# - order_items -> products on a composite key (product_id, variant_id).
+# - CASE-filtered metrics, a ratio across two datasets, computed fields, a timestamp dimension.
+version: "0.1.1"
+
+semantic_model:
+  - name: shop
+    description: Orders, order lines, customers and products
+    datasets:
+      - name: orders
+        source: shop.main.orders
+        primary_key: [order_id]
+        fields:
+          - name: order_id
+            expression: {dialects: [{dialect: ANSI_SQL, expression: order_id}]}
+            dimension: {is_time: false}
+          - name: customer_id
+            expression: {dialects: [{dialect: ANSI_SQL, expression: customer_id}]}
+            dimension: {is_time: false}
+          - name: status
+            expression: {dialects: [{dialect: ANSI_SQL, expression: status}]}
+            dimension: {is_time: false}
+          - name: channel
+            expression: {dialects: [{dialect: ANSI_SQL, expression: LOWER(channel)}]}
+            dimension: {is_time: false}
+          - name: ordered_at
+            expression: {dialects: [{dialect: ANSI_SQL, expression: ordered_at}]}
+            dimension: {is_time: true}
+          - name: amount
+            expression: {dialects: [{dialect: ANSI_SQL, expression: amount}]}
+          - name: shipping_fee
+            expression: {dialects: [{dialect: ANSI_SQL, expression: shipping_fee}]}
+
+      - name: order_items
+        source: shop.main.order_items
+        primary_key: [order_id, line_number]
+        fields:
+          - name: order_id
+            expression: {dialects: [{dialect: ANSI_SQL, expression: order_id}]}
+          - name: line_number
+            expression: {dialects: [{dialect: ANSI_SQL, expression: line_number}]}
+          - name: product_id
+            expression: {dialects: [{dialect: ANSI_SQL, expression: product_id}]}
+          - name: variant_id
+            expression: {dialects: [{dialect: ANSI_SQL, expression: variant_id}]}
+          - name: quantity
+            expression: {dialects: [{dialect: ANSI_SQL, expression: quantity}]}
+          - name: line_total
+            expression: {dialects: [{dialect: ANSI_SQL, expression: quantity * unit_price}]}
+          - name: gift_wrap
+            expression: {dialects: [{dialect: ANSI_SQL, expression: gift_wrap}]}
+            dimension: {is_time: false}
+
+      - name: customers
+        source: shop.main.customers
+        primary_key: [customer_id]
+        fields:
+          - name: customer_id
+            expression: {dialects: [{dialect: ANSI_SQL, expression: customer_id}]}
+          - name: region
+            expression: {dialects: [{dialect: ANSI_SQL, expression: region}]}
+            dimension: {is_time: false}
+          - name: segment
+            expression: {dialects: [{dialect: ANSI_SQL, expression: "segment || '-' || region"}]}
+            dimension: {is_time: false}
+          - name: signup_date
+            expression: {dialects: [{dialect: ANSI_SQL, expression: signup_date}]}
+            dimension: {is_time: true}
+
+      - name: products
+        source: shop.main.products
+        primary_key: [product_id, variant_id]
+        fields:
+          - name: product_id
+            expression: {dialects: [{dialect: ANSI_SQL, expression: product_id}]}
+          - name: variant_id
+            expression: {dialects: [{dialect: ANSI_SQL, expression: variant_id}]}
+          - name: category
+            expression: {dialects: [{dialect: ANSI_SQL, expression: category}]}
+            dimension: {is_time: false}
+
+    relationships:
+      - name: orders_to_customers
+        from: orders
+        to: customers
+        from_columns: [customer_id]
+        to_columns: [customer_id]
+      - name: items_to_orders
+        from: order_items
+        to: orders
+        from_columns: [order_id]
+        to_columns: [order_id]
+      - name: items_to_products
+        from: order_items
+        to: products
+        from_columns: [product_id, variant_id]
+        to_columns: [product_id, variant_id]
+
+    metrics:
+      - name: revenue
+        expression: {dialects: [{dialect: ANSI_SQL, expression: SUM(orders.amount)}]}
+      - name: completed_revenue
+        expression:
+          dialects:
+            - dialect: ANSI_SQL
+              expression: "SUM(CASE WHEN orders.status = 'status_1' THEN orders.amount ELSE 0 END)"
+      - name: order_count
+        expression: {dialects: [{dialect: ANSI_SQL, expression: COUNT(DISTINCT orders.order_id)}]}
+      - name: avg_order_value
+        expression: {dialects: [{dialect: ANSI_SQL, expression: "AVG(orders.amount + COALESCE(orders.shipping_fee, 0))"}]}
+      - name: units_sold
+        expression: {dialects: [{dialect: ANSI_SQL, expression: SUM(order_items.quantity)}]}
+      - name: item_revenue
+        expression: {dialects: [{dialect: ANSI_SQL, expression: SUM(order_items.line_total)}]}
+      - name: units_per_order
+        expression: {dialects: [{dialect: ANSI_SQL, expression: SUM(order_items.quantity) / COUNT(DISTINCT orders.order_id)}]}
+      - name: largest_order
+        expression: {dialects: [{dialect: ANSI_SQL, expression: MAX(orders.amount)}]}
