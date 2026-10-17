@@ -7,3 +7,5 @@ licensed under the Apache License, Version 2.0:
   corpus/upstream/osi-schema-0.1.1.json    (tag osi-0.1.1-rc1)
   corpus/upstream/tpcds_0.2.0.dev0.yaml   (commit 464f3968)
   corpus/upstream/ossie-schema-0.2.0.dev0.json (commit 464f3968)
+  corpus/known/issue_462_thoughtspot_tpcds.yaml (from converters/thoughtspot/tests/fixtures/tpcds/
+    expected.ossie.yaml, commit 464f3968; reshaped to 0.1.1, one query-source dataset removed)
