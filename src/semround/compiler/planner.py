@@ -19,7 +19,7 @@ from dataclasses import dataclass, field
 import sqlglot.expressions as exp
 
 from semround.compiler.query import Query
-from semround.errors import Unsupported, UsageError
+from semround.errors import NoPortableExpression, Unsupported, UsageError
 from semround.model.loader import LoadedModel, parse_sql
 from semround.model.spec import Relationship
 
@@ -64,7 +64,7 @@ def metric_ast(loaded: LoadedModel, metric_name: str) -> exp.Expression:
         raise UsageError(f"unknown metric {metric_name!r}")
     chosen = metric.expression.portable()
     if chosen is None:
-        raise Unsupported("no OSSIE_SQL_2026 or ANSI_SQL expression")
+        raise NoPortableExpression("no OSSIE_SQL_2026 or ANSI_SQL expression")
     return parse_sql(chosen.expression, f"metric {metric.name}")
 
 

@@ -14,7 +14,7 @@ from semround.compiler.queries import all_queries
 from semround.compiler.query import Query
 from semround.diff import Code, Issue, Tolerance, classify, compare, finding_id
 from semround.engine import Result, load_memory, run
-from semround.errors import Unsupported
+from semround.errors import NoPortableExpression, Unsupported
 from semround.fixtures import DEFAULT_TRAPS, FixtureSet, generate
 from semround.model import LoadedModel, load_model
 from semround.model.types import ColumnType, infer_types, unsure_columns
@@ -132,6 +132,10 @@ def check_model(path: Path, targets: list[Target], opts: CheckOptions, workdir: 
                 plan, ref_sql = compile_query(loaded, query)
             except Unsupported as u:
                 records.append(_record(query, "skipped", str(u)))
+                if isinstance(u, NoPortableExpression):
+                    for t in ready:
+                        for issue in _check_vendor_only(t, query, loaded):
+                            add(query.metric, t.name, issue, None, query)
                 continue
             reference = _execute(con, ref_sql)
             records.append(_record(query, "ok", None, plan.fanout))
@@ -166,6 +170,27 @@ def _record(query: Query, status: str, reason: str | None, fanout: bool = False)
         reason=reason,
         fanout=fanout,
     )
+
+
+def _check_vendor_only(t, query: Query, loaded: LoadedModel) -> list[Issue]:
+    """A metric with only vendor-dialect expressions: did the target drop it, or guess? (apache/ossie#462)"""
+    if getattr(t, "is_reference", False):
+        return []
+    metric = loaded.model.metric(query.metric)
+    have = sorted({d.dialect for d in metric.expression.dialects}) if metric else []
+    try:
+        outcome = t.compile(query)
+    except Exception as e:
+        return [Issue(Code.TARGET_ERROR, f"compile failed: {e}")]
+    if isinstance(outcome, Compiled):
+        return [Issue(Code.DIALECT_FALLBACK, f"metric has only {have} expressions, but the target emitted SQL for it")]
+    reason = outcome.reason if isinstance(outcome, (Dropped, Refusal)) else ""
+    return [
+        Issue(
+            Code.DROPPED,
+            f"metric has only {have} expressions (no OSSIE_SQL_2026 or ANSI_SQL), so the target dropped it: {reason}",
+        )
+    ]
 
 
 def _check_target(t, query, fanout, ref_sql, reference, con, attributor, opts):

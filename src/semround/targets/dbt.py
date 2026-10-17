@@ -154,16 +154,6 @@ class DbtTarget:
             primary = [e["name"] for e in sm.get("entities", []) if e.get("type") == "primary"]
             if primary:
                 self._entities[sm["name"].lower()] = primary[0]
-        for metric in loaded.model.metrics:
-            if metric.expression.portable() is None and metric.name in self._metrics:
-                have = sorted({d.dialect for d in metric.expression.dialects})
-                self.model_issues.append(
-                    (
-                        "DIALECT_FALLBACK",
-                        metric.name,
-                        f"metric has only {have} expressions, but dbt kept it as portable SQL",
-                    )
-                )
 
     def _patch_agg_time(self, manifest: dict, out: Path) -> Path:
         missing = [

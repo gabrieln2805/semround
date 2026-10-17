@@ -53,6 +53,8 @@ Normal data never contains these cases; only the traps add them. So when Semroun
 
 **Findings** ([diff/classify.py](../src/semround/diff/classify.py)). Each problem gets a code (`VALUE_MISMATCH`, `MISSING_GROUPS`, `DROPPED`, …) and a stable ID such as `SR-7f3a9c`. A known problem can be accepted in `semround.toml` so CI stays green.
 
+**Vendor-only metrics.** Some metrics exist only in a vendor dialect, such as ThoughtSpot formulas, with no portable SQL. The reference compiler can't compute those, so Semround asks each target what it did with them instead: dropped (`DROPPED`, the [apache/ossie#462](https://github.com/apache/ossie/issues/462) symptom) or guessed SQL anyway (`DIALECT_FALLBACK`). The code is `_check_vendor_only` in [check.py](../src/semround/check.py).
+
 ## Rules the code must keep
 
 These come from the plan, and tests enforce them ([tests/test_invariants.py](../tests/test_invariants.py)):
@@ -72,6 +74,7 @@ These come from the plan, and tests enforce them ([tests/test_invariants.py](../
 | `test_oracle_agreement.py` | Compiler and oracle agree on random data |
 | `test_mutants.py` | Six deliberately broken converters in `tests/mutants/` are all caught |
 | `test_dbt_target.py` | Real dbt run (skipped if `.targets/dbt` is missing) |
+| `test_known_failures.py` | Known upstream bugs in `corpus/known/`, e.g. #462, are reported with stable IDs |
 | `test_cli.py` | Commands, exit codes, identical reports on reruns |
 
 ## Test models
@@ -79,6 +82,9 @@ These come from the plan, and tests enforce them ([tests/test_invariants.py](../
 - `corpus/upstream/`: the official TPC-DS example from Apache Ossie, in versions 0.1.1 and 0.2.
 - `corpus/traps/shop.yaml`: our own model, built to hit tricky cases.
 - `corpus/traps/shop_small.yaml`: a smaller version that dbt can parse.
+- `corpus/known/issue_462_thoughtspot_tpcds.yaml`: TPC-DS as the ThoughtSpot converter exports it, with every metric in ThoughtSpot formulas only (issue #462).
+
+`upstream/` (local only, not in git) holds drafts of bug reports for other projects, each with a small script that reproduces the bug.
 
 ## Everyday commands
 

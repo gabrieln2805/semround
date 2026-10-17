@@ -15,6 +15,7 @@ from semround.targets.base import Compiled, Outcome, Refusal
 
 class ReferenceTarget:
     name = "reference"
+    is_reference = True  # the answer key itself; skipped by checks that judge converters
 
     def __init__(self) -> None:
         self._loaded: LoadedModel | None = None

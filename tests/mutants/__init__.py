@@ -140,4 +140,21 @@ class DropDistinctCounts(_Base):
             return Refusal(str(u))
 
 
-ALL = [NaiveJoin, NaiveInnerJoin, SundayWeeks, UtcShift, DropFilter, DropDistinctCounts]
+class PortableOnly(_Base):
+    """Drops metrics with no ANSI_SQL/OSSIE_SQL_2026 expression, as the Snowflake and Databricks
+    converters do (apache/ossie#462). Stand-in until those converters run as real targets (S3).
+    """
+
+    name = "portable-only"
+
+    def compile(self, query: Query) -> Outcome:
+        metric = self.loaded.model.metric(query.metric)
+        if metric is not None and metric.expression.portable() is None:
+            return Dropped("no Snowflake-compatible expression")
+        try:
+            return Compiled(self.reference(query))
+        except Unsupported as u:
+            return Refusal(str(u))
+
+
+ALL = [NaiveJoin, NaiveInnerJoin, SundayWeeks, UtcShift, DropFilter, DropDistinctCounts, PortableOnly]

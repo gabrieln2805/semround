@@ -33,3 +33,10 @@ class Unsupported(Exception):
 
     Not an error: the query is reported as skipped with the reason.
     """
+
+
+class NoPortableExpression(Unsupported):
+    """The metric has no OSSIE_SQL_2026 or ANSI_SQL expression, only vendor dialects.
+
+    No converter can translate it without guessing (apache/ossie#462).
+    """
