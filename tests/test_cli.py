@@ -38,6 +38,17 @@ def test_findings_exit_1_and_accepting_them_exits_0(tmp_path: Path, mutant_targe
     assert "Accepted:" in res.output
 
 
+def test_html_report_is_self_contained(tmp_path: Path, mutant_targets) -> None:
+    out = tmp_path / "r.html"
+    res = runner.invoke(app, ["check", str(SHOP), "--to", "reference,naive-inner", "--html", str(out)])
+    assert res.exit_code == 1, res.output
+    page = out.read_text(encoding="utf-8")
+    assert page.startswith("<!doctype html>")
+    assert "<th>reference</th>" in page and "<th>naive-inner</th>" in page  # metric x target grid
+    assert "orphan_fk" in page and "Correct</th><th>Converted" in page  # finding with values side by side
+    assert "<script" not in page and "http" not in page  # works offline, fetches nothing (rule I1)
+
+
 def test_reports_are_byte_identical(tmp_path: Path) -> None:
     paths = [tmp_path / "a.json", tmp_path / "b.json"]
     for p in paths:

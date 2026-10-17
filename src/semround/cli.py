@@ -71,6 +71,7 @@ def check(
     seed: Annotated[int | None, typer.Option(help="Fixture seed.")] = None,
     json_out: Annotated[Path | None, typer.Option("--json", help="Write the JSON report here.")] = None,
     md_out: Annotated[Path | None, typer.Option("--md", help="Write the Markdown report here.")] = None,
+    html_out: Annotated[Path | None, typer.Option("--html", help="Write the HTML report here.")] = None,
     config: ConfigOpt = None,
     spec_dev: SpecDevOpt = False,
     model_name: ModelNameOpt = None,
@@ -80,7 +81,7 @@ def check(
     from semround.config import load_config
     from semround.diff import Tolerance
     from semround.fixtures import DEFAULT_TRAPS
-    from semround.report import to_json, to_markdown
+    from semround.report import to_html, to_json, to_markdown
 
     def go() -> int:
         cfg = load_config(config)
@@ -111,6 +112,8 @@ def check(
             json_out.write_text(to_json(report), encoding="utf-8", newline="\n")
         if md_out:
             md_out.write_text(md, encoding="utf-8", newline="\n")
+        if html_out:
+            html_out.write_text(to_html(report), encoding="utf-8", newline="\n")
         typer.echo(md)
         return report.exit_code
 

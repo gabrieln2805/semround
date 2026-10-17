@@ -25,7 +25,7 @@ model.yaml ──► loader ──► type inference ──► seeded fixtures (
 
 ```bash
 uv sync
-uv run semround check corpus/traps/shop.yaml --to reference
+uv run semround check corpus/traps/shop.yaml --to reference --html report.html
 uv run semround compile corpus/traps/shop.yaml --metric revenue --by region,ordered_at:month
 uv run semround fixtures corpus/upstream/tpcds_0.1.1.yaml --out /tmp/tpcds
 ```
