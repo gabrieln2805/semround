@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: 17 Oct 2026 (session 3)_
+_Last updated: 17 Oct 2026 (session 4)_
 
 ## Current stage
 
@@ -50,3 +50,4 @@ Items 4 and 5 share one cause, so they're one draft. Also: dbt v1.12 rejects a T
 - **16 Oct 2026:** Created the repo. Built the loader, type guessing, fake data with traps, reference compiler, oracle, compare/report, CLI and tests. Added the dbt target and found 5 upstream bugs.
 - **17 Oct 2026:** Added the HTML report (`semround check … --html report.html`): a metrics × targets grid of match/fail, and each finding expands to show its cause, the affected queries, and correct vs converted values. One file, works offline.
 - **17 Oct 2026 (session 3):** Reproduced #462 using upstream's own ThoughtSpot TPC-DS export (`corpus/known/`). Semround now reports metrics that exist only in a vendor dialect as `DROPPED` or `DIALECT_FALLBACK` per target, instead of skipping them silently. Re-checked the dbt/MetricFlow bugs against the newest versions and wrote 4 issue drafts with repro scripts in `upstream/`.
+- **17 Oct 2026 (session 4):** Removed the AI co-author lines from all commits (history rewritten; needs a force-push). Added a process diagram, [docs/semround-flow.svg](docs/semround-flow.svg), shown in the README and docs/codebase.md.

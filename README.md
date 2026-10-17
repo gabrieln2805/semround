@@ -8,13 +8,7 @@ Point it at an [Apache Ossie](https://github.com/apache/ossie) model and choose 
 
 ## How it works
 
-```text
-model.yaml ──► loader ──► type inference ──► seeded fixtures (DuckDB, with traps)
-                  │                                   │
-                  ├──► reference compiler ──► SQL ──► run ──┐
-                  │                                         ├──► diff ──► findings ──► report
-                  └──► each target (converter) ──► SQL ──► run ──┘
-```
+![How Semround works](docs/semround-flow.svg)
 
 - **Reference compiler.** It follows the Ossie rule that each measure aggregates at its own grain, whatever the joins. Each aggregate is computed in its own CTE, with left joins along many-to-one paths. A dimension reachable only through a one-to-many join makes the query *fan-out*. Values are then deduplicated by the measured dataset's primary key, and a target must either match that or refuse the query.
 - **Independent oracle.** A second, plain-Python row-by-row evaluator shares no code with the compiler. Property-based tests require the two to agree on random fixtures, so a Semround bug does not get reported as a converter bug.

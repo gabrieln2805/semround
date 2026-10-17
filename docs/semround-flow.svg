@@ -1,0 +1,130 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1110 600" width="1110" height="600" role="img" aria-labelledby="t d">
+  <title id="t">How Semround works</title>
+  <desc id="d">A model file is loaded, column types are guessed and fake DuckDB tables with traps are built. For each query, Semround writes the correct SQL and gets the converted SQL from each target, runs both on the same tables, compares the results, names the problem and writes a report. A separate oracle checks the correct SQL in tests, and turning one trap off at a time names the cause of a difference.</desc>
+  <style>
+    :root { --bg:#ffffff; --fg:#1d2329; --muted:#5f6b76; --line:#8a96a1;
+            --in:#eef1f4; --in-s:#8a96a1; --data:#fff4d6; --data-s:#c99a1e; --ref:#e3f5e8; --ref-s:#2f9e57;
+            --tgt:#efe8fb; --tgt-s:#8456d1; --out:#e4effb; --out-s:#3a7bd5; --chk:#6e7781; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#0d1117; --fg:#e6edf3; --muted:#9aa4ae; --line:#7d8590;
+              --in:#1c2128; --in-s:#7d8590; --data:#2b2411; --data-s:#d4a72c; --ref:#11281a; --ref-s:#3fb950;
+              --tgt:#221a33; --tgt-s:#a37ef0; --out:#11233a; --out-s:#58a6ff; --chk:#9aa4ae; }
+    }
+    .bg { fill: var(--bg); }
+    text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; fill: var(--fg); }
+    .h { font-size: 15px; font-weight: 600; }
+    .s { font-size: 12px; fill: var(--muted); font-family: ui-monospace, Consolas, monospace; }
+    .note { font-size: 12px; fill: var(--muted); }
+    .box { stroke-width: 1.5; }
+    .in   { fill: var(--in);   stroke: var(--in-s); }
+    .data { fill: var(--data); stroke: var(--data-s); }
+    .ref  { fill: var(--ref);  stroke: var(--ref-s); }
+    .tgt  { fill: var(--tgt);  stroke: var(--tgt-s); }
+    .out  { fill: var(--out);  stroke: var(--out-s); }
+    .chk  { fill: var(--in);   stroke: var(--chk); stroke-dasharray: 6 4; }
+    .flow { fill: none; stroke: var(--line); stroke-width: 1.6; }
+    .dash { fill: none; stroke: var(--chk); stroke-width: 1.6; stroke-dasharray: 6 4; }
+    .head { fill: var(--line); }
+    .headc { fill: var(--chk); }
+  </style>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="head"/>
+    </marker>
+    <marker id="c" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" class="headc"/>
+    </marker>
+  </defs>
+  <rect class="bg" x="0" y="0" width="1110" height="600"/>
+
+  <!-- Top row: input to fake data -->
+  <rect class="box in"   x="20"  y="60" width="150" height="70" rx="10"/>
+  <text class="h" x="95"  y="90" text-anchor="middle">Ossie model</text>
+  <text class="s" x="95"  y="110" text-anchor="middle">YAML / JSON file</text>
+
+  <rect class="box in"   x="200" y="60" width="180" height="70" rx="10"/>
+  <text class="h" x="290" y="90" text-anchor="middle">1 · Load &amp; check</text>
+  <text class="s" x="290" y="110" text-anchor="middle">model/loader.py</text>
+
+  <rect class="box data" x="410" y="60" width="180" height="70" rx="10"/>
+  <text class="h" x="500" y="90" text-anchor="middle">2 · Guess types</text>
+  <text class="s" x="500" y="110" text-anchor="middle">model/types.py</text>
+
+  <rect class="box data" x="620" y="60" width="200" height="70" rx="10"/>
+  <text class="h" x="720" y="90" text-anchor="middle">3 · Fake data + traps</text>
+  <text class="s" x="720" y="110" text-anchor="middle">fixtures/ (seeded)</text>
+
+  <rect class="box data" x="850" y="60" width="230" height="70" rx="10"/>
+  <text class="h" x="965" y="90" text-anchor="middle">DuckDB test tables</text>
+  <text class="note" x="965" y="110" text-anchor="middle">same data for every target</text>
+
+  <path class="flow" d="M170,95 H198" marker-end="url(#a)"/>
+  <path class="flow" d="M380,95 H408" marker-end="url(#a)"/>
+  <path class="flow" d="M590,95 H618" marker-end="url(#a)"/>
+  <path class="flow" d="M820,95 H848" marker-end="url(#a)"/>
+
+  <!-- Middle: queries, two SQL paths, run, compare -->
+  <rect class="box in"   x="200" y="230" width="180" height="70" rx="10"/>
+  <text class="h" x="290" y="260" text-anchor="middle">4 · Queries</text>
+  <text class="s" x="290" y="280" text-anchor="middle">metric × group-by</text>
+  <path class="flow" d="M290,130 V228" marker-end="url(#a)"/>
+
+  <rect class="box tgt"  x="430" y="180" width="220" height="70" rx="10"/>
+  <text class="h" x="540" y="208" text-anchor="middle">5a · Converted SQL</text>
+  <text class="s" x="540" y="228" text-anchor="middle">targets/: dbt → MetricFlow</text>
+
+  <rect class="box ref"  x="430" y="290" width="220" height="70" rx="10"/>
+  <text class="h" x="540" y="318" text-anchor="middle">5b · Correct SQL</text>
+  <text class="s" x="540" y="338" text-anchor="middle">compiler/ (reference)</text>
+
+  <path class="flow" d="M380,255 H405 V215 H428" marker-end="url(#a)"/>
+  <path class="flow" d="M380,275 H405 V325 H428" marker-end="url(#a)"/>
+
+  <rect class="box in"   x="690" y="235" width="160" height="70" rx="10"/>
+  <text class="h" x="770" y="263" text-anchor="middle">6 · Run both</text>
+  <text class="s" x="770" y="283" text-anchor="middle">engine/duck.py</text>
+  <path class="flow" d="M650,215 H670 V255 H688" marker-end="url(#a)"/>
+  <path class="flow" d="M650,325 H670 V285 H688" marker-end="url(#a)"/>
+  <path class="flow" d="M965,130 V165 H770 V233" marker-end="url(#a)"/>
+
+  <rect class="box out"  x="880" y="235" width="200" height="70" rx="10"/>
+  <text class="h" x="980" y="263" text-anchor="middle">7 · Compare</text>
+  <text class="s" x="980" y="283" text-anchor="middle">diff/compare.py</text>
+  <path class="flow" d="M850,270 H878" marker-end="url(#a)"/>
+
+  <!-- Bottom: classify, report; oracle check -->
+  <rect class="box out"  x="880" y="430" width="200" height="70" rx="10"/>
+  <text class="h" x="980" y="458" text-anchor="middle">8 · Name the problem</text>
+  <text class="s" x="980" y="478" text-anchor="middle">diff/classify.py</text>
+  <path class="flow" d="M980,305 V428" marker-end="url(#a)"/>
+
+  <rect class="box out"  x="630" y="430" width="230" height="70" rx="10"/>
+  <text class="h" x="745" y="458" text-anchor="middle">9 · Report + exit code</text>
+  <text class="s" x="745" y="478" text-anchor="middle">report/: JSON · MD · HTML</text>
+  <path class="flow" d="M880,465 H862" marker-end="url(#a)"/>
+
+  <rect class="box chk"  x="380" y="430" width="220" height="70" rx="10"/>
+  <text class="h" x="490" y="458" text-anchor="middle">Oracle (tests only)</text>
+  <text class="s" x="490" y="478" text-anchor="middle">oracle/evaluator.py</text>
+  <path class="dash" d="M490,430 V362" marker-end="url(#c)"/>
+  <text class="note" x="500" y="400">must give the same answer</text>
+
+  <!-- Trap attribution loop -->
+  <path class="dash" d="M1080,465 H1095 V40 H720 V58" marker-end="url(#c)"/>
+  <text class="note" x="905" y="28" text-anchor="middle">re-run with one trap off → names the trap that caused it</text>
+
+  <!-- Legend -->
+  <path class="flow" d="M20,560 H60" marker-end="url(#a)"/>
+  <text class="note" x="70" y="564">data flow</text>
+  <path class="dash" d="M160,560 H200" marker-end="url(#c)"/>
+  <text class="note" x="210" y="564">checks</text>
+  <rect class="box ref" x="290" y="551" width="18" height="18" rx="4"/>
+  <text class="note" x="316" y="564">answer key</text>
+  <rect class="box tgt" x="410" y="551" width="18" height="18" rx="4"/>
+  <text class="note" x="436" y="564">tool under test</text>
+  <rect class="box data" x="560" y="551" width="18" height="18" rx="4"/>
+  <text class="note" x="586" y="564">fake data</text>
+  <rect class="box out" x="680" y="551" width="18" height="18" rx="4"/>
+  <text class="note" x="706" y="564">results</text>
+  <text class="note" x="1080" y="564" text-anchor="end">orchestrated by check.py · CLI in cli.py</text>
+</svg>

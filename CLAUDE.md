@@ -5,3 +5,4 @@
 - How the code fits together: [docs/codebase.md](docs/codebase.md). Keep it current when modules change.
 - The plan is "Semround technical plan.md". It holds private notes and stays out of git (excluded in `.git/info/exclude`).
 - Before finishing: `uv run ruff check src tests`, `uv run ruff format --check src tests` and `uv run pytest` must pass.
+- Commits: no `Co-Authored-By: Claude` lines (or any AI attribution) in commit messages or PR descriptions.

@@ -8,12 +8,7 @@ Tools like dbt and Snowflake can import a metric definition from another format.
 
 ## The pipeline
 
-```text
-model file ─► 1 load ─► 2 guess column types ─► 3 build fake tables (with traps)
-                 │                                        │
-                 ├─► 4 correct SQL (reference) ───────────┤─► 6 compare ─► 7 report
-                 └─► 5 converted SQL (each target) ───────┘
-```
+![How Semround works](semround-flow.svg)
 
 | Step | What it does | Code |
 | --- | --- | --- |
